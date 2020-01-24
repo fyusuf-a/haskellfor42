@@ -3,35 +3,7 @@
 # safety subshell to avoid executing anything in case this script is not downloaded properly
 (
 
-BOOTSTRAP_HASKELL_VERBOSE = "true"
-if [ -n "$1" ] ; then
-    GHCUP_INSTALL_BASE_PREFIX="$1"
-fi
-
-: "${GHCUP_INSTALL_BASE_PREFIX:=$HOME/goinfre}"
-
-mkdir -p $GHCUP_INSTALL_BASE_PREFIX/.cabal
-mkdir -p $GHCUP_INSTALL_BASE_PREFIX/.ghcup
-ln -sf $GHCUP_INSTALL_BASE_PREFIX/.cabal $HOME/.cabal
-ln -sf $GHCUP_INSTALL_BASE_PREFIX/.ghcup $HOME/.ghcup
-
-die() {
-    (>&2 printf "\\033[0;31m%s\\033[0m\\n" "$1")
-    exit 2
-}
-
-edo()
-{
-    "$@" || die "\"$*\" failed!"
-}
-
-eghcup() {
-    if [ -z "${BOOTSTRAP_HASKELL_VERBOSE}" ] ; then
-        edo ghcup "$@"
-    else
-        edo ghcup --verbose "$@"
-    fi
-}
+#BOOTSTRAP_HASKELL_VERBOSE = "true"
 
 echo
 echo "Welcome to Haskell!"
@@ -58,6 +30,77 @@ if [ -z "${BOOTSTRAP_HASKELL_NONINTERACTIVE}" ] ; then
     read -r answer </dev/tty
 fi
 
+if [ -n "$1" ] ; then
+    GHCUP_INSTALL_BASE_PREFIX="$1"
+fi
+
+: "${GHCUP_INSTALL_BASE_PREFIX:=$HOME/goinfre}"
+
+if [ -d "$HOME/.cabal" ] ; then
+	printf "\\033[0;35m%s\\033[0m\\n" ""
+	printf "\\033[0;35m%s\\033[0m\\n" "There is already a .cabal directory in your home folder."
+	printf "\\033[0;35m%s\\033[0m\\n" "Do you accept that it will be overwritten and backed up as $HOME/.cabal.backup.`date +%y-%m-%d` ?"
+	printf "\\033[0;35m%s\\033[0m\\n" "answer with YES, otherwise with NO and press ENTER."
+	printf "\\033[0;35m%s\\033[0m\\n" ""
+    while true; do
+        read -r next_answer </dev/tty
+
+        case $next_answer in
+            [Yy]*)
+                mv $HOME/.cabal $HOME/.cabal.backup.`date +%y-%m-%d`
+                break;;
+            [Nn]*)
+                exit 0;;
+            *)
+                echo "Please type YES or NO and press enter.";;
+        esac
+    done
+fi
+
+if [ -d "$HOME/.ghcup" ] ; then
+	printf "\\033[0;35m%s\\033[0m\\n" ""
+	printf "\\033[0;35m%s\\033[0m\\n" "There is already a .ghcup directory in your home folder."
+	printf "\\033[0;35m%s\\033[0m\\n" "Do you accept that it will be overwritten and backed up as $HOME/.cabal.backup.`date +%y-%m-%d` ?"
+	printf "\\033[0;35m%s\\033[0m\\n" "answer with YES, otherwise with NO and press ENTER."
+	printf "\\033[0;35m%s\\033[0m\\n" ""
+    while true; do
+        read -r next_answer </dev/tty
+
+        case $next_answer in
+            [Yy]*)
+                mv $HOME/.ghcup $HOME/.ghcup.backup.`date +%y-%m-%d`
+                break;;
+            [Nn]*)
+                exit 0;;
+            *)
+                echo "Please type YES or NO and press enter.";;
+        esac
+    done
+fi
+
+mkdir -p $GHCUP_INSTALL_BASE_PREFIX/.ghcup
+mkdir -p $GHCUP_INSTALL_BASE_PREFIX/.cabal
+ln -sf $GHCUP_INSTALL_BASE_PREFIX/.cabal $HOME/.cabal
+ln -sf $GHCUP_INSTALL_BASE_PREFIX/.ghcup $HOME/.ghcup
+
+die() {
+    (>&2 printf "\\033[0;31m%s\\033[0m\\n" "$1")
+    exit 2
+}
+
+edo()
+{
+    "$@" || die "\"$*\" failed!"
+}
+
+eghcup() {
+    if [ -z "${BOOTSTRAP_HASKELL_VERBOSE}" ] ; then
+        edo ghcup "$@"
+    else
+        edo ghcup --verbose "$@"
+    fi
+}
+
 edo mkdir -p "$GHCUP_INSTALL_BASE_PREFIX"/haskell/bin
 
 if command -V "ghcup" >/dev/null 2>&1 ; then
@@ -72,7 +115,6 @@ else
 		export PATH="$GHCUP_INSTALL_BASE_PREFIX/.ghcup/bin:$GHCUP_INSTALL_BASE_PREFIX/haskell/bin:\$PATH"
 		EOF
 	# shellcheck disable=SC1090
-    echo "toto"
     edo . "$GHCUP_INSTALL_BASE_PREFIX"/haskell/env
 fi
 
