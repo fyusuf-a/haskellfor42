@@ -5,6 +5,12 @@
 
 #BOOTSTRAP_HASKELL_VERBOSE = "true"
 
+if [ -n "$1" ] ; then
+    GHCUP_INSTALL_BASE_PREFIX="$1"
+fi
+
+: "${GHCUP_INSTALL_BASE_PREFIX:=$HOME/goinfre}"
+
 echo
 echo "Welcome to Haskell!"
 echo
@@ -29,12 +35,6 @@ if [ -z "${BOOTSTRAP_HASKELL_NONINTERACTIVE}" ] ; then
     # shellcheck disable=SC2034
     read -r answer </dev/tty
 fi
-
-if [ -n "$1" ] ; then
-    GHCUP_INSTALL_BASE_PREFIX="$1"
-fi
-
-: "${GHCUP_INSTALL_BASE_PREFIX:=$HOME/goinfre}"
 
 if [ -d "$HOME/.cabal" ] ; then
 	printf "\\033[0;35m%s\\033[0m\\n" ""
